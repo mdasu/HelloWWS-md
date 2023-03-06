@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wdnm:Diagram xmlns:wdnm="http://workday.com/studio/editors/notation">
+  <element href="assembly.xml#WorkdayAssembly"/>
+  <visualProperties x="27" y="224">
+    <element href="assembly.xml#HelloWWS_EntryPoint"/>
+  </visualProperties>
+  <visualProperties x="507" y="229">
+    <element href="assembly.xml#PagedGetOfWorkers"/>
+  </visualProperties>
+  <visualProperties x="678" y="594">
+    <element href="assembly.xml#PutIntegrationMessage"/>
+  </visualProperties>
+  <visualProperties x="585" y="163">
+    <element href="assembly.xml#Transform-And-Store-Output"/>
+  </visualProperties>
+  <visualProperties x="254" y="150">
+    <element href="assembly.xml#CreateRequest"/>
+  </visualProperties>
+  <visualProperties x="330" y="244">
+    <element href="assembly.xml#ReportWebserviceError"/>
+  </visualProperties>
+  <visualProperties x="722" y="277">
+    <element href="assembly.xml#ReportTransformError"/>
+  </visualProperties>
+  <decorations x="933" y="240" width="193" height="267" font="Arial|10|0" fontColor="1" type="TEXT" text="This PutIntegrationMessage common component attaches the output document to the Integration Event and marks it as Deliverable so that a Delivery Service can be configured to transmit the document to another system.&#xD;&#xA;&#xD;&#xA;It also writes a message to the Integration Event that includes the number of records processed by the integration and included in the output."/>
+  <decorations x="749" y="321" width="188" height="280" font="Arial|10|0" fontColor="1" type="TEXT" text="The assembly uses a streaming XSLT 3 stylesheet to scalably transform the potentially huge response from the webservice calls.&#xD;&#xA;&#xD;&#xA;The result of this transformation is then stored so that it can be attached to the integration event and thereby made available to other integrations, integration services, or a suitably permissioned user."/>
+  <decorations x="570" y="334" width="206" height="313" font="Arial|10|0" fontColor="1" type="TEXT" text="The PagedGet common component (a pre-packaged subassembly) called PagedGetOfWorkers requests each page of records from Workday. You can see on the Parameters tab of its Properties view that a number of parameters have been set.&#xD;&#xA;&#xD;&#xA;The component sets properties that provide access to the number of results that have been processed. Two of these properties are used later by the PutIntegrationMessage component."/>
+  <decorations x="361" y="412" width="226" height="186" font="Arial|10|0" fontColor="1" type="TEXT" text="A write step enables you to add content into the mediation message. The one in this example's sync mediation, CreateGetWorkersRequest, adds the SOAP web service request message Get_Workers_Request. You can obtain Workday web service request messages from the Schema Explorer view."/>
+  <decorations x="148" y="163" width="200" height="624" font="Arial|10|0" fontColor="1" type="TEXT" text="A workday-in is the entry point to the integration. This example's workday-in is called HelloWWS_EntryPoint.&#xD;&#xA;&#xD;&#xA;On the Launch Parameters tab of the Properties view you can see that a number of launch parameters have been set to control the behaviour of the integration. For integrations that retrieve, it's often wise to allow the Effective Date and As of Entry Moment to be set when running the integration. This way you can ensure that all web service requests are transactionally consistent by using these values in all requests. In addition, this allows you to re-run the integration at a later time using exactly the same conditions as an earlier run. This is useful for debugging integrations, as it allows you to retrieve exactly the same data in separate runs, irrespective of what transactions have been completed since that time.&#xD;&#xA;&#xD;&#xA;If your tenant has a very large number of workers, you may want to specify an Organization when running this sample integration so that it only returns the members of that organization and any subordinate organizations."/>
+  <connections type="routesResponseTo" sourceAnchorX="0.9290780141843972" sourceAnchorY="0.5135135135135135" targetAnchorX="0.08280254777070063" targetAnchorY="0.14634146341463414">
+    <source href="assembly.xml#PagedGetOfWorkers"/>
+    <target href="assembly.xml#Transform-And-Store-Output"/>
+  </connections>
+  <connections type="routesTo" sourceAnchorX="0.8980891719745223" sourceAnchorY="0.13008130081300814" targetAnchorX="0.29333333333333333" targetAnchorY="0.4594594594594595">
+    <source href="assembly.xml#Transform-And-Store-Output"/>
+    <target href="assembly.xml#PutIntegrationMessage"/>
+  </connections>
+  <connections type="routesTo" sourceAnchorX="0.9527027027027027" sourceAnchorY="0.4594594594594595" targetAnchorX="0.014285714285714285" targetAnchorY="0.13008130081300814">
+    <source href="assembly.xml#HelloWWS_EntryPoint"/>
+    <target href="assembly.xml#CreateRequest"/>
+  </connections>
+  <connections type="routesTo" sourceAnchorX="0.8642857142857143" sourceAnchorY="0.10569105691056911" targetAnchorX="0.05673758865248227" targetAnchorY="0.3783783783783784">
+    <source href="assembly.xml#CreateRequest"/>
+    <target href="assembly.xml#PagedGetOfWorkers"/>
+  </connections>
+  <connections type="routesTo" sourceAnchorX="0.45864661654135336" sourceAnchorY="0.7" targetAnchorX="0.44370860927152317" targetAnchorY="0.0">
+    <source href="assembly.xml#//@beans/@mixed.1/@mixed.9/@mixed.3"/>
+    <target href="assembly.xml#ReportWebserviceError"/>
+  </connections>
+  <connections type="routesTo" sourceAnchorX="0.5333333333333333" sourceAnchorY="1.0" targetAnchorX="0.535483870967742" targetAnchorY="0.7027027027027027">
+    <source href="assembly.xml#//@beans/@mixed.1/@mixed.7/@mixed.3"/>
+    <target href="assembly.xml#ReportTransformError"/>
+  </connections>
+  <swimlanes x="-69" y="-1" font="Arial|12|1" bgColor="16777215" fontColor="1" name="Hello Workday Web Services" elements="//@swimlanes.5 //@swimlanes.1 //@swimlanes.4 //@swimlanes.2 //@swimlanes.3"/>
+  <swimlanes x="252" y="142" font="Arial|9|1" fgColor="16777215" fontColor="1" name="Create Request and Handle Web Service Errors" orientation="VERTICAL" alignment="MIDDLE">
+    <elements href="assembly.xml#CreateRequest"/>
+    <elements href="assembly.xml#ReportWebserviceError"/>
+    <elements href="#//@decorations.3"/>
+  </swimlanes>
+  <swimlanes x="628" y="130" font="Arial|9|1" fgColor="16777215" fontColor="1" name="Transform and Store" orientation="VERTICAL" alignment="MIDDLE">
+    <elements href="assembly.xml#Transform-And-Store-Output"/>
+    <elements href="assembly.xml#ReportTransformError"/>
+    <elements href="#//@decorations.1"/>
+  </swimlanes>
+  <swimlanes x="886" y="172" font="Arial|9|1" fgColor="16777215" fontColor="1" name="Make Document Deliverable" orientation="VERTICAL">
+    <elements href="assembly.xml#PutIntegrationMessage"/>
+    <elements href="#//@decorations.0"/>
+  </swimlanes>
+  <swimlanes x="503" y="207" font="Arial|9|1" fgColor="16777215" fontColor="1" name="Request Worker Records" orientation="VERTICAL">
+    <elements href="assembly.xml#PagedGetOfWorkers"/>
+    <elements href="#//@decorations.2"/>
+  </swimlanes>
+  <swimlanes x="91" y="145" font="Arial|9|1" bgColor="16777215" fgColor="16777215" fontColor="1" name="Entry Point" orientation="VERTICAL">
+    <elements href="assembly.xml#HelloWWS_EntryPoint"/>
+    <elements href="#//@decorations.4"/>
+  </swimlanes>
+</wdnm:Diagram>

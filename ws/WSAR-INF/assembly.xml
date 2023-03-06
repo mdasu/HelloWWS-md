@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+     xmlns="http://www.springframework.org/schema/beans"
+     xmlns:beans="http://www.springframework.org/schema/beans"
+     xmlns:cc="http://www.capeclear.com/assembly/10"
+     xmlns:cloud="urn:com.workday/esb/cloud/10.0"
+     xmlns:env="http://schemas.xmlsoap.org/soap/envelope/"
+     xmlns:wd="urn:com.workday/bsvc"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+	<cc:assembly id="WorkdayAssembly" version="2018.14">
+		<cc:workday-in id="HelloWWS_EntryPoint" routes-to="CreateRequest">
+			<cc:integration-system name="HelloWWS-md">
+        <cloud:param name="Organization">
+          <cloud:type>
+            <cloud:class-report-field description="Supervisory Organization" type="WID" singular="true">792121fdb3d74a7d909e1b36571f863a</cloud:class-report-field>
+          </cloud:type>
+        </cloud:param>
+        <cloud:param name="As Of Effective Date">
+          <cloud:type>
+            <cloud:simple-type>date</cloud:simple-type>
+          </cloud:type>
+          <cloud:default>
+            <cloud:class-report-field description="Today" type="WID">3125a787147b4323a84cc5ed05751df9</cloud:class-report-field>
+          </cloud:default>
+        </cloud:param>
+        <cloud:param name="As Of Entry Moment">
+          <cloud:type>
+            <cloud:simple-type>datetime</cloud:simple-type>
+          </cloud:type>
+          <cloud:default>
+            <cloud:class-report-field description="Current Moment (DateTime)" type="WID">df4effe76deb4222a79001d6737cf91c</cloud:class-report-field>
+          </cloud:default>
+        </cloud:param>
+      </cc:integration-system>
+		</cc:workday-in>
+<cc:local-out id="PagedGetOfWorkers" routes-response-to="Transform-And-Store-Output" endpoint="vm://wcc/PagedGet">
+<cc:set name="is.paged.get.request.current.page.xpath" value="'/env:Envelope/env:Body/wd:Get_Workers_Request/wd:Response_Filter/wd:Page'"/>
+<cc:set name="is.paged.get.response.current.page.xpath" value="'/env:Envelope/env:Body/*/wd:Response_Results/wd:Page'"/>
+<cc:set name="is.paged.get.response.total.pages.xpath" value="'/env:Envelope/env:Body/*/wd:Response_Results/wd:Total_Pages'"/>
+<cc:set name="is.paged.get.response.total.results.xpath" value="'/env:Envelope/env:Body/*/wd:Response_Results/wd:Total_Results'"/>
+<cc:set name="is.paged.get.application" value="'Human_Resources'"/>
+<cc:set name="is.paged.get.version" value="'v30.1'"/>
+
+<cc:set name="is.paged.get.aggregate.xpath" value="// This property allows us to specify that only a subsection of the webservice response will be returned from the PagedGet&#xA;// component.  In this case we will return all the Worker elements but eliminate all the structure of the webservice&#xA;// response around them as this does not contain information that we need to process.&#xA;'/env:Envelope/env:Body/wd:Get_Workers_Response/wd:Response_Data/wd:Worker'"/><cc:set name="is.paged.get.aggregate.header" value="// This is the root element under which our results will be written&#xA;'&lt;Workers>'"/><cc:set name="is.paged.get.aggregate.footer" value="// This is the matching end-tag for the value specified in the is.paged.get.aggregate.header parameter&#xA;'&lt;/Workers>'"/></cc:local-out>
+
+<cc:local-out id="PutIntegrationMessage" endpoint="vm://wcc/PutIntegrationMessage" clone-request="true">
+<cc:set name="is.message.summary" value="'Processed ' + props['is.paged.get.total.results'] + ' records'"/>
+<cc:set name="is.message.detail" value="'Processed ' + props['is.paged.get.total.results'] + ' records from ' +props['is.paged.get.total.pages'] + ' pages of results'"/>
+<cc:set name="is.document.deliverable" value="'true'"/><cc:set name="is.document.variable.name" value="// The preceding store step has put the results of the integration into the blobitory (W: drive).  We have configured it to put the summary of&#xA;// this storage into the variable named store.blob.  We pass the name of this variable into the PutIntegrationMessage call so that the&#xA;// document can be attached to the integration event and that we can tag the document as deliverable.&#xA;'store.blob'"/></cc:local-out>
+        <cc:async-mediation id="Transform-And-Store-Output" routes-to="PutIntegrationMessage">
+            <cc:steps>
+                <cc:xslt-plus id="transform" url="CreateWorkerSummary.xsl"/>
+                <cc:store id="Store" output="variable" output-variable="store.blob" createDocumentReference="false" summary="This is the transformed output" title="TransformedOutput.xml"/>
+            </cc:steps>
+            <cc:send-error id="SendError" routes-to="ReportTransformError"/>
+        </cc:async-mediation>
+        <cc:async-mediation id="CreateRequest" routes-to="PagedGetOfWorkers" handle-downstream-errors="true">
+            <cc:steps>
+				<cc:write id="CreateGetWorkersRequest">
+					<cc:message>
+					<cc:text>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?>&#xD;
+&lt;env:Envelope xmlns:env=&quot;http://schemas.xmlsoap.org/soap/envelope/&quot;>&#xD;
+    &lt;env:Body>&#xD;
+        &lt;wd:Get_Workers_Request xmlns:wd=&quot;urn:com.workday/bsvc&quot; wd:version=&quot;v30.1&quot;>&#xD;
+        &lt;!-- &#xD;
+        		This conditional expression will only include a Request_Criteria section if an Organization has been specified&#xD;
+        		by the user in the integration launch parameters.&#xD;
+         -->&#xD;
+        @if{ lp.getReferenceData('Organization', 'WID') != empty }&#xD;
+			&lt;wd:Request_Criteria>&#xD;
+    				&lt;wd:Organization_Reference>&#xD;
+        				&lt;wd:ID wd:type=&quot;WID&quot;>@{ lp.getReferenceData('Organization', 'WID') }&lt;/wd:ID>&#xD;
+    				&lt;/wd:Organization_Reference>&#xD;
+				&lt;wd:Include_Subordinate_Organizations>true&lt;/wd:Include_Subordinate_Organizations>&#xD;
+			&lt;/wd:Request_Criteria>&#xD;
+        @end{}&#xD;
+            &lt;wd:Response_Filter>&#xD;
+            		&lt;!-- &#xD;
+            			For paged calls you should always specify the As_Of_Effective_Date and As_Of_Entry_DateTime elements so that each page&#xD;
+            			is returned with data for the same effective date and entry moment.  It also improves performance by helping avoid the&#xD;
+            			need to requery the underlying data for each page of results.&#xD;
+            		 -->&#xD;
+				&lt;wd:As_Of_Effective_Date>@{lp.getSimpleData('As Of Effective Date')}&lt;/wd:As_Of_Effective_Date>&#xD;
+				&lt;wd:As_Of_Entry_DateTime>@{ lp.getSimpleData('As Of Entry Moment')}&lt;/wd:As_Of_Entry_DateTime>&#xD;
+				&lt;wd:Exclude_Inactive_Workers>true&lt;/wd:Exclude_Inactive_Workers>&#xD;
+                &lt;wd:Page>1&lt;/wd:Page>&#xD;
+            &lt;/wd:Response_Filter>&#xD;
+            &lt;wd:Response_Group>&#xD;
+                &lt;wd:Include_Reference>true&lt;/wd:Include_Reference>&#xD;
+                &lt;wd:Include_Personal_Information>true&lt;/wd:Include_Personal_Information>&#xD;
+                &lt;wd:Include_Employment_Information>true&lt;/wd:Include_Employment_Information>&#xD;
+            &lt;/wd:Response_Group>&#xD;
+        &lt;/wd:Get_Workers_Request>&#xD;
+    &lt;/env:Body>&#xD;
+&lt;/env:Envelope></cc:text></cc:message>
+				</cc:write></cc:steps>
+            <cc:send-error id="SendError" routes-to="ReportWebserviceError"/>
+        </cc:async-mediation>
+        <cc:local-out id="ReportWebserviceError" endpoint="vm://wcc/PutIntegrationMessage"><cc:set name="is.message.severity" value="'INFO'"/><cc:set name="is.message.summary" value="'An error occurred making the webservice call.  The reported problem was: ' + context.errorMessage"/><cc:set name="is.message.storage.enabled" value="false"/></cc:local-out>
+        <cc:local-out id="ReportTransformError" endpoint="vm://wcc/PutIntegrationMessage"><cc:set name="is.message.severity" value="'ERROR'"/><cc:set name="is.message.summary" value="'An error occurred transforming the webservice output.  The reported problem was: ' + context.errorMessage"/><cc:set name="is.message.storage.enabled" value="false"/></cc:local-out>
+
+
+
+
+</cc:assembly>
+
+</beans>

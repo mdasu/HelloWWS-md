@@ -1,0 +1,9 @@
+DELEGATES_PREFERENCE=delegateValidatorList
+USER_BUILD_PREFERENCE=enabledBuildValidatorListcom.workday.assembly.test.validation.AUnitValidatorJob;com.capeclear.wtp.links.LinkedResourcesValidatorJob;com.capeclear.wtp.facet.assembly.validation.BeanClasspathValidatorJob;org.eclipse.jst.j2ee.internal.classpathdep.ClasspathDependencyValidator;com.capeclear.wtp.facet.assembly.validation.AssemblyValidatorJob;org.eclipse.wst.wsi.ui.internal.WSIMessageValidator;
+USER_MANUAL_PREFERENCE=enabledManualValidatorListcom.workday.assembly.test.validation.AUnitValidatorJob;com.capeclear.wtp.links.LinkedResourcesValidatorJob;com.capeclear.wtp.facet.assembly.validation.BeanClasspathValidatorJob;org.eclipse.jst.j2ee.internal.classpathdep.ClasspathDependencyValidator;com.capeclear.wtp.facet.assembly.validation.AssemblyValidatorJob;org.eclipse.wst.wsi.ui.internal.WSIMessageValidator;
+USER_PREFERENCE=overrideGlobalPreferencestruedisableAllValidationfalseversion1.2.701.v201707142105
+eclipse.preferences.version=1
+override=true
+suspend=false
+vals/org.eclipse.wst.xsl.core.xsl/groups=0107include0207fileext03xslF111contentType134org.eclipse.wst.xml.core.xslsourceT0107exclude0104file123CreateWorkerSummary.xslF01
+vf.version=3
